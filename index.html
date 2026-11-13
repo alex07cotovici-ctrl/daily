@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Daily">
+<meta name="theme-color" content="#0e0f13">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Daily</title>
+<style>
+:root{
+  --bg:#0e0f13;--card:#181a21;--card2:#20232c;--line:#2a2e39;
+  --text:#eef0f5;--muted:#8b91a1;--accent:#7c9cff;--accent2:#4fd1a5;
+  --warn:#ffb454;--bad:#ff6b6b;--water:#4fb3ff;--sleep:#b48cff;
+  --r:16px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;font-size:16px}
+body{padding:calc(env(safe-area-inset-top) + 8px) 16px calc(env(safe-area-inset-bottom) + 90px)}
+h1{font-size:28px;margin:6px 0 2px;letter-spacing:-.5px}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin:0 0 10px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.sub{color:var(--muted);font-size:14px;margin-bottom:14px}
+.card{background:var(--card);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.row{display:flex;align-items:center;gap:10px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+button{font:inherit;color:inherit;border:0;background:var(--card2);border-radius:12px;padding:10px 14px;cursor:pointer}
+button.primary{background:var(--accent);color:#0b0d14;font-weight:600}
+button.ghost{background:transparent;color:var(--muted);padding:6px 8px}
+button.small{padding:6px 10px;font-size:14px}
+button:active{transform:scale(.97)}
+input,textarea,select{font:inherit;color:var(--text);background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;width:100%;outline:none}
+input:focus,textarea:focus{border-color:var(--accent)}
+textarea{resize:vertical;min-height:70px}
+.check{width:24px;height:24px;border-radius:8px;border:2px solid var(--line);flex:0 0 24px;display:grid;place-items:center;font-size:14px}
+.check.on{background:var(--accent2);border-color:var(--accent2);color:#08130f}
+.item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:0}
+.item .txt{flex:1;word-break:break-word}
+.item.done .txt{color:var(--muted);text-decoration:line-through}
+.tag{font-size:11px;padding:2px 7px;border-radius:20px;background:var(--card2);color:var(--muted)}
+.big{font-size:30px;font-weight:700;letter-spacing:-.5px}
+.muted{color:var(--muted);font-size:13px}
+.bar{height:8px;background:var(--card2);border-radius:8px;overflow:hidden;margin-top:8px}
+.bar>div{height:100%;border-radius:8px;transition:width .3s}
+.streaks{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
+.streak{background:var(--card2);border-radius:12px;padding:10px 4px}
+.streak b{display:block;font-size:22px}
+.streak span{font-size:11px;color:var(--muted)}
+.drops{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.drop{width:26px;height:30px;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;background:var(--card2)}
+.drop.on{background:var(--water)}
+nav{position:fixed;left:0;right:0;bottom:0;background:rgba(14,15,19,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-top:1px solid var(--line);display:flex;padding:8px 6px calc(env(safe-area-inset-bottom) + 8px);z-index:10}
+nav button{flex:1;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:var(--muted);padding:6px 0}
+nav button .ic{font-size:20px}
+nav button.on{color:var(--accent)}
+.tab{display:none}.tab.on{display:block}
+.timer-ring{position:relative;width:240px;height:240px;margin:10px auto}
+.timer-ring svg{transform:rotate(-90deg)}
+.timer-ring .t{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.timer-ring .t b{font-size:48px;font-variant-numeric:tabular-nums;letter-spacing:-1px}
+.seg{display:flex;background:var(--card2);border-radius:12px;padding:3px;margin-bottom:8px}
+.seg button{flex:1;background:none;padding:8px;font-size:14px;color:var(--muted)}
+.seg button.on{background:var(--card);color:var(--text)}
+.stars button{background:none;font-size:28px;padding:2px 4px;color:var(--line)}
+.stars button.on{color:var(--warn)}
+.dl{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.dl:last-child{border-bottom:0}
+.dl .days{min-width:54px;text-align:center;background:var(--card2);border-radius:10px;padding:6px 4px;font-weight:700}
+.dl .days small{display:block;font-size:10px;font-weight:400;color:var(--muted)}
+.dl.urgent .days{background:rgba(255,107,107,.15);color:var(--bad)}
+.dl.soon .days{background:rgba(255,180,84,.15);color:var(--warn)}
+.coach{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--text)}
+.coach .ic{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#ff7a59,#ffb454);display:grid;place-items:center;font-size:22px}
+.daypick{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px}
+.daypick button{flex:0 0 auto;min-width:44px;padding:6px 8px;font-size:12px;text-align:center}
+.daypick button.on{background:var(--accent);color:#0b0d14;font-weight:600}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 90px);transform:translateX(-50%);background:var(--card2);padding:10px 16px;border-radius:12px;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:20;border:1px solid var(--line)}
+.toast.show{opacity:1}
+.prio{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.prio .n{color:var(--accent);font-weight:700;width:14px}
+.prio input{padding:8px 10px}
+.prio.done input{text-decoration:line-through;color:var(--muted)}
+label.f{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-top:6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+</style>
+</head>
+<body>
+
+<!-- ============ TODAY ============ -->
+<section class="tab on" id="tab-today">
+  <h1 id="greet">Today</h1>
+  <div class="sub" id="dateline"></div>
+
+  <div class="card">
+    <h2>Top 3 priorities <span class="muted" id="prioCount"></span></h2>
+    <div id="prios"></div>
+  </div>
+
+  <div class="card" id="nextDeadlineCard" style="display:none"></div>
+
+  <div class="card">
+    <h2>Checklist <span class="muted" id="taskCount"></span></h2>
+    <div id="tasks"></div>
+    <form id="taskForm" class="row" style="margin-top:10px">
+      <input id="taskInput" placeholder="Add a task…" autocomplete="off">
+      <button class="primary" type="submit">+</button>
+    </form>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h2>Study</h2>
+      <div class="big" id="studyBig">0m</div>
+      <div class="muted" id="studyGoalTxt"></div>
+      <div class="bar"><div id="studyBar" style="background:var(--accent)"></div></div>
+      <div class="row" style="margin-top:10px;gap:6px">
+        <button class="small" id="studyMinus">−15</button>
+        <button class="small" id="studyPlus">+15</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Sleep</h2>
+      <div class="big" id="sleepBig">–</div>
+      <div class="muted" id="sleepGoalTxt"></div>
+      <div class="bar"><div id="sleepBar" style="background:var(--sleep)"></div></div>
+      <div class="row" style="margin-top:10px;gap:6px">
+        <button class="small" id="sleepMinus">−½</button>
+        <button class="small" id="sleepPlus">+½</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Water <span class="muted" id="waterTxt"></span></h2>
+    <div class="drops" id="drops"></div>
+    <div class="row" style="gap:6px">
+      <button class="small" id="waterMinus">−1</button>
+      <button class="small primary" id="waterPlus" style="flex:1">+1 glass</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Streaks 🔥</h2>
+    <div class="streaks" id="streaks"></div>
+  </div>
+
+  <div class="card">
+    <a class="coach" id="coachLink" href="#" target="_blank" rel="noopener">
+      <div class="ic">💪</div>
+      <div style="flex:1">
+        <div style="font-weight:600">Cut Coach</div>
+        <div class="muted" id="coachSub">Today's workout & meals</div>
+      </div>
+      <div class="check" id="coachCheck"></div>
+    </a>
+  </div>
+</section>
+
+<!-- ============ TIMER ============ -->
+<section class="tab" id="tab-timer">
+  <h1>Focus</h1>
+  <div class="sub">Study time is logged to today automatically.</div>
+  <div class="card">
+    <div class="seg" id="modeSeg">
+      <button data-mode="focus" class="on">Focus</button>
+      <button data-mode="break">Break</button>
+      <button data-mode="free">Stopwatch</button>
+    </div>
+    <div class="seg" id="lenSeg"></div>
+    <div class="timer-ring">
+      <svg width="240" height="240">
+        <circle cx="120" cy="120" r="108" stroke="#20232c" stroke-width="12" fill="none"/>
+        <circle id="ring" cx="120" cy="120" r="108" stroke="#7c9cff" stroke-width="12" fill="none" stroke-linecap="round"
+          stroke-dasharray="678.58" stroke-dashoffset="0"/>
+      </svg>
+      <div class="t"><div><b id="timeTxt">25:00</b><div class="muted" id="modeTxt">Focus</div></div></div>
+    </div>
+    <div class="row" style="justify-content:center;gap:10px">
+      <button class="primary" id="startBtn" style="min-width:120px">Start</button>
+      <button id="stopBtn">Stop & save</button>
+    </div>
+    <div class="muted" style="text-align:center;margin-top:12px" id="sessTxt"></div>
+  </div>
+  <div class="card">
+    <h2>Today's sessions</h2>
+    <div id="sessions"><div class="muted">No sessions yet.</div></div>
+  </div>
+</section>
+
+<!-- ============ WEEK ============ -->
+<section class="tab" id="tab-week">
+  <h1>Week</h1>
+  <div class="sub" id="weekRange"></div>
+  <div class="card">
+    <h2>Study & sleep</h2>
+    <div id="chart"></div>
+    <div class="legend"><span><i style="background:var(--accent)"></i>Study (h)</span><span><i style="background:var(--sleep)"></i>Sleep (h)</span></div>
+  </div>
+  <div class="grid2" id="weekStats"></div>
+  <div class="card">
+    <h2>Look at a day</h2>
+    <div class="daypick" id="daypick"></div>
+    <div id="dayDetail"></div>
+  </div>
+  <div class="card">
+    <h2>Weekly review</h2>
+    <div class="muted">How did this week go?</div>
+    <div class="stars" id="stars"></div>
+    <label class="f">What went well / what didn't</label>
+    <textarea id="revWent" placeholder="e.g. good study days when I slept 7h+"></textarea>
+    <label class="f">Goals for next week</label>
+    <textarea id="revNext" placeholder="e.g. finish anatomy chapter 4, 3 workouts"></textarea>
+    <div class="muted" id="lastGoals" style="margin-top:10px"></div>
+  </div>
+</section>
+
+<!-- ============ PLAN ============ -->
+<section class="tab" id="tab-plan">
+  <h1>Plan</h1>
+  <div class="sub">Exams, client deadlines & daily habits.</div>
+  <div class="card">
+    <h2>Deadlines</h2>
+    <div id="deadlines"></div>
+    <form id="dlForm" style="margin-top:10px">
+      <input id="dlTitle" placeholder="e.g. Anatomy exam" autocomplete="off">
+      <div class="row" style="margin-top:8px">
+        <input type="date" id="dlDate">
+        <select id="dlType" style="width:auto">
+          <option value="exam">📚 Exam</option>
+          <option value="client">💼 Client</option>
+          <option value="other">📌 Other</option>
+        </select>
+      </div>
+      <button class="primary" type="submit" style="width:100%;margin-top:8px">Add deadline</button>
+    </form>
+  </div>
+  <div class="card">
+    <h2>Daily habits</h2>
+    <div class="muted" style="margin-bottom:6px">These get added to your checklist automatically every day.</div>
+    <div id="habits"></div>
+    <form id="habitForm" class="row" style="margin-top:10px">
+      <input id="habitInput" placeholder="e.g. Review flashcards" autocomplete="off">
+      <button class="primary" type="submit">+</button>
+    </form>
+  </div>
+</section>
+
+<!-- ============ SETTINGS ============ -->
+<section class="tab" id="tab-settings">
+  <h1>Settings</h1>
+  <div class="sub">Goals and backup.</div>
+  <div class="card">
+    <label class="f">Your name</label>
+    <input id="setName">
+    <label class="f">Daily study goal (minutes)</label>
+    <input type="number" id="setStudy" inputmode="numeric">
+    <label class="f">Sleep goal (hours)</label>
+    <input type="number" id="setSleep" step="0.5" inputmode="decimal">
+    <label class="f">Water goal (glasses)</label>
+    <input type="number" id="setWater" inputmode="numeric">
+    <label class="f">Focus length (minutes)</label>
+    <input type="number" id="setFocus" inputmode="numeric">
+    <label class="f">Break length (minutes)</label>
+    <input type="number" id="setBreak" inputmode="numeric">
+    <label class="f">Cut Coach link</label>
+    <input id="setCoach" inputmode="url">
+  </div>
+  <div class="card">
+    <h2>Backup</h2>
+    <div class="muted" style="margin-bottom:10px">Your data lives only on this phone. Export now and then to keep it safe.</div>
+    <div class="row">
+      <button id="exportBtn" style="flex:1">Export</button>
+      <button id="importBtn" style="flex:1">Import</button>
+    </div>
+    <input type="file" id="importFile" accept="application/json" style="display:none">
+  </div>
+  <div class="card">
+    <button class="ghost" id="resetBtn" style="color:var(--bad)">Reset everything</button>
+  </div>
+</section>
+
+<nav>
+  <button data-tab="today" class="on"><span class="ic">☀️</span>Today</button>
+  <button data-tab="timer"><span class="ic">⏱️</span>Focus</button>
+  <button data-tab="week"><span class="ic">📊</span>Week</button>
+  <button data-tab="plan"><span class="ic">🗓️</span>Plan</button>
+  <button data-tab="settings"><span class="ic">⚙️</span>Settings</button>
+</nav>
+<div class="toast" id="toast"></div>
+
+<script>
+// ---------- storage ----------
+const KEY = 'daily-v1';
+const DEFAULT = {
+  days: {},
+  habits: [],
+  deadlines: [],
+  reviews: {},
+  settings: { name:'Alex', studyGoal:120, sleepGoal:7.5, waterGoal:8, focusMin:25, breakMin:5,
+              coachUrl:'https://alex07cotovici-ctrl.github.io/coach/' },
+  timer: { mode:'focus', running:false, startedAt:0, elapsed:0, length:25 }
+};
+let S;
+try { S = JSON.parse(localStorage.getItem(KEY)) || null; } catch(e){ S = null; }
+if (!S) S = structuredClone(DEFAULT);
+S = Object.assign(structuredClone(DEFAULT), S);
+S.settings = Object.assign(structuredClone(DEFAULT.settings), S.settings);
+S.timer = Object.assign(structuredClone(DEFAULT.timer), S.timer);
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} };
+
+// ---------- helpers ----------
+const $ = s => document.querySelector(s);
+const uid = () => Math.random().toString(36).slice(2,10);
+const pad = n => String(n).padStart(2,'0');
+const keyOf = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const todayKey = () => keyOf(new Date());
+const parseKey = k => { const [y,m,d] = k.split('-').map(Number); return new Date(y, m-1, d); };
+const addDays = (d,n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtMin = m => { m = Math.round(m); const h = Math.floor(m/60), r = m%60; return h ? `${h}h${r?` ${r}m`:''}` : `${r}m`; };
+const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),1800); }
+
+function day(k = todayKey()){
+  if (!S.days[k]) {
+    S.days[k] = { tasks: S.habits.map(h => ({ id:uid(), text:h.text, done:false, habit:h.id })),
+                  top3:['','',''], top3done:[false,false,false], sleep:null, water:0, study:0, sessions:[], coach:false };
+  }
+  const d = S.days[k];
+  // add any habits created after the day started
+  if (k === todayKey()) S.habits.forEach(h => { if (!d.tasks.some(t => t.habit === h.id)) d.tasks.push({ id:uid(), text:h.text, done:false, habit:h.id }); });
+  d.sessions ||= []; d.top3done ||= [false,false,false];
+  return d;
+}
+const peek = k => S.days[k];
+
+// ---------- goals / streaks ----------
+const met = {
+  study: d => d && d.study >= S.settings.studyGoal,
+  sleep: d => d && d.sleep != null && d.sleep >= S.settings.sleepGoal,
+  water: d => d && d.water >= S.settings.waterGoal,
+  tasks: d => d && d.tasks.length > 0 && d.tasks.every(t => t.done),
+};
+function streak(fn){
+  let n = 0, d = new Date();
+  if (!fn(peek(keyOf(d)))) d = addDays(d,-1); // today not done yet doesn't break it
+  while (fn(peek(keyOf(d)))) { n++; d = addDays(d,-1); }
+  return n;
+}
+
+// ---------- TODAY ----------
+function renderToday(){
+  const now = new Date(), d = day(), st = S.settings;
+  const h = now.getHours();
+  $('#greet').textContent = `${h<5?'Late night':h<12?'Good morning':h<18?'Good afternoon':'Good evening'}, ${st.name}`;
+  $('#dateline').textContent = `${DOW[now.getDay()]}, ${now.getDate()} ${MON[now.getMonth()]}`;
+
+  // priorities
+  $('#prios').innerHTML = d.top3.map((p,i) => `
+    <div class="prio ${d.top3done[i]?'done':''}">
+      <span class="n">${i+1}</span>
+      <input data-p="${i}" value="${esc(p)}" placeholder="${['Most important thing today','Second priority','Third priority'][i]}">
+      <div class="check ${d.top3done[i]?'on':''}" data-pc="${i}">${d.top3done[i]?'✓':''}</div>
+    </div>`).join('');
+  const pf = d.top3.filter(Boolean).length, pd = d.top3done.filter((x,i)=>x && d.top3[i]).length;
+  $('#prioCount').textContent = pf ? `${pd}/${pf}` : '';
+
+  // next deadline
+  const up = upcomingDeadlines();
+  const card = $('#nextDeadlineCard');
+  if (up.length && up[0].days <= 14) {
+    card.style.display = '';
+    card.innerHTML = `<h2>Coming up</h2>` + up.filter(x=>x.days<=14).slice(0,3).map(dlRow).join('');
+  } else card.style.display = 'none';
+
+  // tasks
+  const done = d.tasks.filter(t=>t.done).length;
+  $('#taskCount').textContent = d.tasks.length ? `${done}/${d.tasks.length}` : '';
+  $('#tasks').innerHTML = d.tasks.length ? d.tasks.map(t => `
+    <div class="item ${t.done?'done':''}">
+      <div class="check ${t.done?'on':''}" data-t="${t.id}">${t.done?'✓':''}</div>
+      <div class="txt">${esc(t.text)} ${t.habit?'<span class="tag">daily</span>':''}</div>
+      <button class="ghost" data-del="${t.id}">✕</button>
+    </div>`).join('') : '<div class="muted">Nothing yet. Add your first task.</div>';
+
+  // study
+  $('#studyBig').textContent = fmtMin(d.study);
+  $('#studyGoalTxt').textContent = `goal ${fmtMin(st.studyGoal)}`;
+  $('#studyBar').style.width = Math.min(100, d.study/st.studyGoal*100) + '%';
+  // sleep
+  $('#sleepBig').textContent = d.sleep == null ? '–' : `${d.sleep}h`;
+  $('#sleepGoalTxt').textContent = d.sleep == null ? 'tap + to log last night' : `goal ${st.sleepGoal}h`;
+  $('#sleepBar').style.width = d.sleep == null ? '0%' : Math.min(100, d.sleep/st.sleepGoal*100) + '%';
+  // water
+  $('#waterTxt').textContent = `${d.water}/${st.waterGoal}`;
+  const n = Math.max(st.waterGoal, d.water);
+  $('#drops').innerHTML = Array.from({length:n}, (_,i) => `<div class="drop ${i<d.water?'on':''}"></div>`).join('');
+
+  // streaks
+  $('#streaks').innerHTML = [['📚','Study',met.study],['😴','Sleep',met.sleep],['💧','Water',met.water],['✅','Tasks',met.tasks]]
+    .map(([e,l,f]) => `<div class="streak"><b>${streak(f)}</b><span>${e} ${l}</span></div>`).join('');
+
+  // coach
+  $('#coachLink').href = st.coachUrl || '#';
+  $('#coachCheck').className = 'check' + (d.coach ? ' on' : '');
+  $('#coachCheck').textContent = d.coach ? '✓' : '';
+  $('#coachSub').textContent = d.coach ? 'Done today 💪' : "Today's workout & meals";
+}
+
+$('#prios').addEventListener('input', e => {
+  if (e.target.dataset.p != null) { day().top3[+e.target.dataset.p] = e.target.value; save(); }
+});
+$('#prios').addEventListener('change', () => renderToday());
+$('#prios').addEventListener('click', e => {
+  const c = e.target.closest('[data-pc]'); if (!c) return;
+  const d = day(), i = +c.dataset.pc;
+  if (!d.top3[i]) return toast('Write the priority first');
+  d.top3done[i] = !d.top3done[i]; save(); renderToday();
+  if (d.top3done[i]) toast('Nice 👏');
+});
+$('#taskForm').addEventListener('submit', e => {
+  e.preventDefault(); const v = $('#taskInput').value.trim(); if (!v) return;
+  day().tasks.push({ id:uid(), text:v, done:false }); $('#taskInput').value=''; save(); renderToday();
+});
+$('#tasks').addEventListener('click', e => {
+  const d = day();
+  const c = e.target.closest('[data-t]');
+  if (c) { const t = d.tasks.find(x=>x.id===c.dataset.t); t.done = !t.done; save(); renderToday();
+    if (met.tasks(d)) toast('All tasks done 🎉'); return; }
+  const x = e.target.closest('[data-del]');
+  if (x) { d.tasks = d.tasks.filter(t=>t.id!==x.dataset.del); save(); renderToday(); }
+});
+$('#studyPlus').onclick = () => { day().study += 15; save(); renderToday(); };
+$('#studyMinus').onclick = () => { const d=day(); d.study = Math.max(0, d.study-15); save(); renderToday(); };
+$('#sleepPlus').onclick = () => { const d=day(); d.sleep = d.sleep==null ? S.settings.sleepGoal : Math.min(14, d.sleep+0.5); save(); renderToday(); };
+$('#sleepMinus').onclick = () => { const d=day(); if (d.sleep==null) d.sleep = S.settings.sleepGoal - 0.5; else d.sleep = Math.max(0, d.sleep-0.5); save(); renderToday(); };
+$('#waterPlus').onclick = () => { const d=day(); d.water++; save(); renderToday(); if (d.water===S.settings.waterGoal) toast('Water goal hit 💧'); };
+$('#waterMinus').onclick = () => { const d=day(); d.water = Math.max(0,d.water-1); save(); renderToday(); };
+$('#coachCheck').addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); const d=day(); d.coach=!d.coach; save(); renderToday(); });
+
+// ---------- TIMER ----------
+const RING = 678.58;
+let ctx;
+function beep(){
+  try {
+    ctx ||= new (window.AudioContext||window.webkitAudioContext)();
+    [0,0.25,0.5].forEach(t => { const o=ctx.createOscillator(), g=ctx.createGain(); o.frequency.value=880; o.connect(g); g.connect(ctx.destination);
+      g.gain.setValueAtTime(.25, ctx.currentTime+t); g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime+t+.2); o.start(ctx.currentTime+t); o.stop(ctx.currentTime+t+.22); });
+  } catch(e){}
+  if (navigator.vibrate) navigator.vibrate([200,100,200]);
+}
+const T = S.timer;
+const elapsedSec = () => T.elapsed + (T.running ? (Date.now()-T.startedAt)/1000 : 0);
+function lengthFor(mode){ return mode==='focus' ? (T.length || S.settings.focusMin) : mode==='break' ? S.settings.breakMin : 0; }
+
+function logStudy(sec, label){
+  const min = Math.round(sec/60);
+  if (min < 1) return 0;
+  const k = keyOf(new Date(T.startedAt || Date.now()));
+  const d = day(k);
+  d.study += min;
+  d.sessions.push({ min, label, at: Date.now() });
+  return min;
+}
+function finishTimer(auto){
+  const sec = elapsedSec(), mode = T.mode;
+  let logged = 0;
+  if (mode === 'focus' || mode === 'free') {
+    const cap = mode==='focus' ? lengthFor('focus')*60 : sec;
+    logged = logStudy(Math.min(sec, cap), mode==='focus' ? 'Focus' : 'Stopwatch');
+  }
+  T.running = false; T.elapsed = 0; T.startedAt = 0;
+  if (auto && mode === 'focus') { T.mode = 'break'; }
+  else if (auto && mode === 'break') { T.mode = 'focus'; }
+  save(); renderTimer(); renderToday();
+  if (auto) { beep(); toast(mode==='focus' ? `Focus done, +${logged}m study. Take a break ☕` : 'Break over. Back to it 📚'); }
+  else if (logged) toast(`Saved ${logged}m of study`);
+}
+function tick(){
+  if (T.running && T.mode !== 'free' && elapsedSec() >= lengthFor(T.mode)*60) finishTimer(true);
+  renderTimerFace();
+}
+function renderTimerFace(){
+  const len = lengthFor(T.mode)*60, el = elapsedSec();
+  const show = T.mode==='free' ? el : Math.max(0, len - el);
+  const m = Math.floor(show/60), s = Math.floor(show%60);
+  $('#timeTxt').textContent = `${pad(m)}:${pad(s)}`;
+  const frac = T.mode==='free' ? (el%3600)/3600 : (len ? el/len : 0);
+  $('#ring').style.strokeDashoffset = RING * (1 - Math.min(1, frac));
+  $('#ring').setAttribute('stroke', T.mode==='break' ? '#4fd1a5' : '#7c9cff');
+  $('#startBtn').textContent = T.running ? 'Pause' : (T.elapsed ? 'Resume' : 'Start');
+}
+function renderTimer(){
+  document.querySelectorAll('#modeSeg button').forEach(b => b.classList.toggle('on', b.dataset.mode===T.mode));
+  const opts = T.mode==='focus' ? [25,45,60,90] : [];
+  $('#lenSeg').style.display = opts.length ? '' : 'none';
+  $('#lenSeg').innerHTML = opts.map(o => `<button data-len="${o}" class="${(T.length||25)===o?'on':''}">${o}m</button>`).join('');
+  $('#modeTxt').textContent = {focus:'Focus',break:'Break',free:'Stopwatch'}[T.mode];
+  const d = day();
+  $('#sessTxt').textContent = `Studied today: ${fmtMin(d.study)}`;
+  $('#sessions').innerHTML = d.sessions.length ? d.sessions.slice().reverse().map(s => {
+    const t = new Date(s.at);
+    return `<div class="item"><div class="txt">${esc(s.label)}</div><span class="muted">${pad(t.getHours())}:${pad(t.getMinutes())}</span><b style="min-width:50px;text-align:right">${fmtMin(s.min)}</b></div>`;
+  }).join('') : '<div class="muted">No sessions yet.</div>';
+  renderTimerFace();
+}
+$('#modeSeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b || b.dataset.mode===T.mode) return;
+  if (T.running || T.elapsed) { if (!confirm('Switch mode? The current timer will be saved and stopped.')) return; finishTimer(false); }
+  T.mode = b.dataset.mode; save(); renderTimer();
+});
+$('#lenSeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (T.running || T.elapsed) return toast('Stop the timer first');
+  T.length = +b.dataset.len; save(); renderTimer();
+});
+$('#startBtn').onclick = () => {
+  try { ctx ||= new (window.AudioContext||window.webkitAudioContext)(); ctx.resume(); } catch(e){}
+  if (T.running) { T.elapsed = elapsedSec(); T.running = false; }
+  else { T.startedAt = Date.now(); T.running = true; }
+  save(); renderTimerFace();
+};
+$('#stopBtn').onclick = () => { if (!T.running && !T.elapsed) return; finishTimer(false); };
+// when paused, startedAt is reset on resume; keep the original day for logging
+setInterval(tick, 500);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { tick(); renderToday(); } });
+
+// ---------- DEADLINES & HABITS ----------
+function upcomingDeadlines(){
+  const today = parseKey(todayKey());
+  return S.deadlines.map(x => ({ ...x, days: Math.round((parseKey(x.date) - today)/864e5) }))
+    .filter(x => x.days >= 0).sort((a,b) => a.days - b.days);
+}
+function dlRow(x){
+  const icon = {exam:'📚',client:'💼',other:'📌'}[x.type] || '📌';
+  const cls = x.days <= 2 ? 'urgent' : x.days <= 7 ? 'soon' : '';
+  const dd = parseKey(x.date);
+  return `<div class="dl ${cls}"><div class="days">${x.days===0?'Today':x.days}<small>${x.days===0?'':x.days===1?'day':'days'}</small></div>
+    <div style="flex:1"><div>${icon} ${esc(x.title)}</div><div class="muted">${DOW[dd.getDay()]} ${dd.getDate()} ${MON[dd.getMonth()]}</div></div>
+    <button class="ghost" data-dldel="${x.id}">✕</button></div>`;
+}
+function renderPlan(){
+  const up = upcomingDeadlines();
+  $('#deadlines').innerHTML = up.length ? up.map(dlRow).join('') : '<div class="muted">No deadlines. Add your next exam.</div>';
+  $('#habits').innerHTML = S.habits.length ? S.habits.map(h => `
+    <div class="item"><div class="txt">${esc(h.text)}</div><button class="ghost" data-hdel="${h.id}">✕</button></div>`).join('')
+    : '<div class="muted">No habits yet.</div>';
+}
+$('#dlDate').value = keyOf(addDays(new Date(),7));
+$('#dlForm').addEventListener('submit', e => {
+  e.preventDefault(); const t = $('#dlTitle').value.trim(), d = $('#dlDate').value;
+  if (!t || !d) return toast('Add a title and date');
+  S.deadlines.push({ id:uid(), title:t, date:d, type:$('#dlType').value });
+  $('#dlTitle').value=''; save(); renderPlan(); renderToday(); toast('Deadline added');
+});
+document.addEventListener('click', e => {
+  const x = e.target.closest('[data-dldel]'); if (!x) return;
+  if (!confirm('Delete this deadline?')) return;
+  S.deadlines = S.deadlines.filter(d => d.id !== x.dataset.dldel); save(); renderPlan(); renderToday();
+});
+$('#habitForm').addEventListener('submit', e => {
+  e.preventDefault(); const v = $('#habitInput').value.trim(); if (!v) return;
+  S.habits.push({ id:uid(), text:v }); $('#habitInput').value=''; day(); save(); renderPlan(); renderToday(); toast('Added to every day');
+});
+$('#habits').addEventListener('click', e => {
+  const x = e.target.closest('[data-hdel]'); if (!x) return;
+  const id = x.dataset.hdel;
+  S.habits = S.habits.filter(h => h.id !== id);
+  const d = day(); d.tasks = d.tasks.filter(t => t.habit !== id || t.done);
+  save(); renderPlan(); renderToday();
+});
+
+// ---------- WEEK ----------
+let selDay = todayKey();
+const weekKeyOf = d => { const m = addDays(d, -((d.getDay()+6)%7)); return keyOf(m); }; // Monday
+function renderWeek(){
+  const today = new Date(), days = Array.from({length:7}, (_,i) => addDays(today, i-6));
+  $('#weekRange').textContent = `Last 7 days · ${days[0].getDate()} ${MON[days[0].getMonth()]} – ${today.getDate()} ${MON[today.getMonth()]}`;
+
+  // chart
+  const W = 320, H = 170, P = 22, bw = 26;
+  const data = days.map(d => { const x = peek(keyOf(d)); return { d, study:(x?.study||0)/60, sleep:x?.sleep ?? null }; });
+  const max = Math.max(10, ...data.map(x => Math.max(x.study, x.sleep||0))) ;
+  const y = v => H - P - (v/max)*(H-P-10);
+  const step = (W-20)/7;
+  const goalY = y(S.settings.studyGoal/60);
+  let svg = `<svg viewBox="0 0 ${W} ${H}" width="100%">`;
+  svg += `<line x1="10" x2="${W-10}" y1="${goalY}" y2="${goalY}" stroke="#7c9cff" stroke-opacity=".35" stroke-dasharray="4 4"/>`;
+  data.forEach((x,i) => {
+    const cx = 10 + step*i + step/2;
+    const bh = Math.max(0, (H-P) - y(x.study));
+    svg += `<rect x="${cx-bw/2}" y="${y(x.study)}" width="${bw}" height="${bh}" rx="6" fill="#7c9cff" fill-opacity="${keyOf(x.d)===todayKey()?1:.75}"/>`;
+    if (x.study) svg += `<text x="${cx}" y="${y(x.study)-4}" fill="#eef0f5" font-size="10" text-anchor="middle">${x.study.toFixed(1)}</text>`;
+    svg += `<text x="${cx}" y="${H-6}" fill="#8b91a1" font-size="11" text-anchor="middle">${DOW[x.d.getDay()][0]}${x.d.getDate()}</text>`;
+  });
+  const pts = data.map((x,i) => x.sleep==null ? null : [10 + step*i + step/2, y(x.sleep)]);
+  let path = '', pen = false;
+  pts.forEach(p => { if (!p) { pen = false; return; } path += (pen?'L':'M') + p[0] + ' ' + p[1] + ' '; pen = true; });
+  if (path) svg += `<path d="${path}" fill="none" stroke="#b48cff" stroke-width="2.5"/>`;
+  pts.forEach(p => { if (p) svg += `<circle cx="${p[0]}" cy="${p[1]}" r="4" fill="#b48cff"/>`; });
+  svg += `</svg>`;
+  $('#chart').innerHTML = svg;
+
+  // stats
+  const logged = data.filter(x=>x.sleep!=null);
+  const totalStudy = data.reduce((a,x)=>a+x.study,0);
+  const avgSleep = logged.length ? logged.reduce((a,x)=>a+x.sleep,0)/logged.length : null;
+  const ds = days.map(d => peek(keyOf(d)));
+  const waterDays = ds.filter(met.water).length, taskDays = ds.filter(met.tasks).length, coachDays = ds.filter(d=>d?.coach).length;
+  $('#weekStats').innerHTML = [
+    ['Total study', fmtMin(totalStudy*60)],
+    ['Avg sleep', avgSleep==null ? '–' : avgSleep.toFixed(1)+'h'],
+    ['Water goal', `${waterDays}/7 days`],
+    ['Workouts', `${coachDays}/7 days`],
+  ].map(([l,v]) => `<div class="card"><div class="muted">${l}</div><div class="big" style="font-size:22px">${v}</div></div>`).join('');
+
+  // day picker
+  $('#daypick').innerHTML = days.map(d => { const k = keyOf(d);
+    return `<button data-day="${k}" class="${k===selDay?'on':''}">${DOW[d.getDay()]}<br>${d.getDate()}</button>`; }).join('');
+  const sd = peek(selDay);
+  $('#dayDetail').innerHTML = !sd ? '<div class="muted">Nothing logged that day.</div>' : `
+    <div class="muted" style="margin-bottom:6px">Study ${fmtMin(sd.study)} · Sleep ${sd.sleep??'–'}h · Water ${sd.water} · ${sd.coach?'Workout ✓':'No workout'}</div>
+    ${sd.top3.filter(Boolean).length ? `<div style="margin:6px 0"><b>Priorities:</b> ${sd.top3.map((p,i)=>p?`${sd.top3done[i]?'✅':'⬜'} ${esc(p)}`:'').filter(Boolean).join(' · ')}</div>` : ''}
+    ${sd.tasks.map(t => `<div class="item ${t.done?'done':''}"><div class="check ${t.done?'on':''}">${t.done?'✓':''}</div><div class="txt">${esc(t.text)}</div></div>`).join('') || '<div class="muted">No tasks.</div>'}`;
+
+  // review
+  const wk = weekKeyOf(today), r = S.reviews[wk] || { rating:0, went:'', next:'' };
+  $('#stars').innerHTML = [1,2,3,4,5].map(n => `<button data-star="${n}" class="${n<=r.rating?'on':''}">★</button>`).join('');
+  if (document.activeElement !== $('#revWent')) $('#revWent').value = r.went;
+  if (document.activeElement !== $('#revNext')) $('#revNext').value = r.next;
+  const prev = S.reviews[weekKeyOf(addDays(today,-7))];
+  $('#lastGoals').innerHTML = prev?.next ? `<b>Last week's goals:</b> ${esc(prev.next)}` : '';
+}
+$('#daypick').addEventListener('click', e => { const b = e.target.closest('[data-day]'); if (b) { selDay = b.dataset.day; renderWeek(); } });
+function review(){ const wk = weekKeyOf(new Date()); return S.reviews[wk] ||= { rating:0, went:'', next:'' }; }
+$('#stars').addEventListener('click', e => { const b = e.target.closest('[data-star]'); if (!b) return; review().rating = +b.dataset.star; save(); renderWeek(); });
+$('#revWent').addEventListener('input', e => { review().went = e.target.value; save(); });
+$('#revNext').addEventListener('input', e => { review().next = e.target.value; save(); });
+
+// ---------- SETTINGS ----------
+const setMap = { setName:'name', setStudy:'studyGoal', setSleep:'sleepGoal', setWater:'waterGoal', setFocus:'focusMin', setBreak:'breakMin', setCoach:'coachUrl' };
+function renderSettings(){ for (const [id,k] of Object.entries(setMap)) $('#'+id).value = S.settings[k]; }
+for (const [id,k] of Object.entries(setMap)) {
+  $('#'+id).addEventListener('change', e => {
+    let v = e.target.value.trim();
+    if (!['name','coachUrl'].includes(k)) { v = parseFloat(v); if (!(v > 0)) { e.target.value = S.settings[k]; return toast('Enter a number above 0'); } }
+    S.settings[k] = v;
+    if (k === 'focusMin') T.length = v;
+    save(); renderAll(); toast('Saved');
+  });
+}
+$('#exportBtn').onclick = async () => {
+  const blob = new Blob([JSON.stringify(S, null, 2)], { type:'application/json' });
+  const name = `daily-backup-${todayKey()}.json`;
+  const file = new File([blob], name, { type:'application/json' });
+  if (navigator.canShare && navigator.canShare({ files:[file] })) { try { await navigator.share({ files:[file] }); return; } catch(e){ if (e.name==='AbortError') return; } }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click();
+};
+$('#importBtn').onclick = () => $('#importFile').click();
+$('#importFile').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try { const data = JSON.parse(await f.text()); if (!data.days) throw 0;
+    if (!confirm('Replace all current data with this backup?')) return;
+    localStorage.setItem(KEY, JSON.stringify(data)); location.reload();
+  } catch(err) { toast('That file is not a Daily backup'); }
+  e.target.value = '';
+};
+$('#resetBtn').onclick = () => { if (confirm('Delete ALL data? This cannot be undone.') && confirm('Really sure?')) { localStorage.removeItem(KEY); location.reload(); } };
+
+// ---------- NAV ----------
+document.querySelector('nav').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x===b));
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.id === 'tab-'+b.dataset.tab));
+  ({today:renderToday, timer:renderTimer, week:renderWeek, plan:renderPlan, settings:renderSettings})[b.dataset.tab]();
+  window.scrollTo(0,0);
+});
+
+// re-render when the date rolls over
+let lastKey = todayKey();
+setInterval(() => { if (todayKey() !== lastKey) { lastKey = todayKey(); selDay = lastKey; renderAll(); } }, 30000);
+
+function renderAll(){ renderToday(); renderTimer(); renderWeek(); renderPlan(); renderSettings(); }
+day(); save(); renderAll();
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
