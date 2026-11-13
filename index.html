@@ -75,8 +75,6 @@ nav button.on{color:var(--accent)}
 .dl .days small{display:block;font-size:10px;font-weight:400;color:var(--muted)}
 .dl.urgent .days{background:rgba(255,107,107,.15);color:var(--bad)}
 .dl.soon .days{background:rgba(255,180,84,.15);color:var(--warn)}
-.coach{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--text)}
-.coach .ic{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#ff7a59,#ffb454);display:grid;place-items:center;font-size:22px}
 .daypick{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px}
 .daypick button{flex:0 0 auto;min-width:44px;padding:6px 8px;font-size:12px;text-align:center}
 .daypick button.on{background:var(--accent);color:#0b0d14;font-weight:600}
@@ -151,16 +149,6 @@ label.f{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
     <div class="streaks" id="streaks"></div>
   </div>
 
-  <div class="card">
-    <a class="coach" id="coachLink" href="#" target="_blank" rel="noopener">
-      <div class="ic">💪</div>
-      <div style="flex:1">
-        <div style="font-weight:600">Cut Coach</div>
-        <div class="muted" id="coachSub">Today's workout & meals</div>
-      </div>
-      <div class="check" id="coachCheck"></div>
-    </a>
-  </div>
 </section>
 
 <!-- ============ TIMER ============ -->
@@ -269,8 +257,6 @@ label.f{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
     <input type="number" id="setFocus" inputmode="numeric">
     <label class="f">Break length (minutes)</label>
     <input type="number" id="setBreak" inputmode="numeric">
-    <label class="f">Cut Coach link</label>
-    <input id="setCoach" inputmode="url">
   </div>
   <div class="card">
     <h2>Backup</h2>
@@ -303,8 +289,7 @@ const DEFAULT = {
   habits: [],
   deadlines: [],
   reviews: {},
-  settings: { name:'Alex', studyGoal:120, sleepGoal:7.5, waterGoal:8, focusMin:25, breakMin:5,
-              coachUrl:'https://alex07cotovici-ctrl.github.io/coach/' },
+  settings: { name:'Alex', studyGoal:120, sleepGoal:7.5, waterGoal:8, focusMin:25, breakMin:5 },
   timer: { mode:'focus', running:false, startedAt:0, elapsed:0, length:25 }
 };
 let S;
@@ -332,7 +317,7 @@ function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('sh
 function day(k = todayKey()){
   if (!S.days[k]) {
     S.days[k] = { tasks: S.habits.map(h => ({ id:uid(), text:h.text, done:false, habit:h.id })),
-                  top3:['','',''], top3done:[false,false,false], sleep:null, water:0, study:0, sessions:[], coach:false };
+                  top3:['','',''], top3done:[false,false,false], sleep:null, water:0, study:0, sessions:[] };
   }
   const d = S.days[k];
   // add any habits created after the day started
@@ -408,11 +393,6 @@ function renderToday(){
   $('#streaks').innerHTML = [['📚','Study',met.study],['😴','Sleep',met.sleep],['💧','Water',met.water],['✅','Tasks',met.tasks]]
     .map(([e,l,f]) => `<div class="streak"><b>${streak(f)}</b><span>${e} ${l}</span></div>`).join('');
 
-  // coach
-  $('#coachLink').href = st.coachUrl || '#';
-  $('#coachCheck').className = 'check' + (d.coach ? ' on' : '');
-  $('#coachCheck').textContent = d.coach ? '✓' : '';
-  $('#coachSub').textContent = d.coach ? 'Done today 💪' : "Today's workout & meals";
 }
 
 $('#prios').addEventListener('input', e => {
@@ -444,7 +424,6 @@ $('#sleepPlus').onclick = () => { const d=day(); d.sleep = d.sleep==null ? S.set
 $('#sleepMinus').onclick = () => { const d=day(); if (d.sleep==null) d.sleep = S.settings.sleepGoal - 0.5; else d.sleep = Math.max(0, d.sleep-0.5); save(); renderToday(); };
 $('#waterPlus').onclick = () => { const d=day(); d.water++; save(); renderToday(); if (d.water===S.settings.waterGoal) toast('Water goal hit 💧'); };
 $('#waterMinus').onclick = () => { const d=day(); d.water = Math.max(0,d.water-1); save(); renderToday(); };
-$('#coachCheck').addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); const d=day(); d.coach=!d.coach; save(); renderToday(); });
 
 // ---------- TIMER ----------
 const RING = 678.58;
@@ -614,12 +593,12 @@ function renderWeek(){
   const totalStudy = data.reduce((a,x)=>a+x.study,0);
   const avgSleep = logged.length ? logged.reduce((a,x)=>a+x.sleep,0)/logged.length : null;
   const ds = days.map(d => peek(keyOf(d)));
-  const waterDays = ds.filter(met.water).length, taskDays = ds.filter(met.tasks).length, coachDays = ds.filter(d=>d?.coach).length;
+  const waterDays = ds.filter(met.water).length;
   $('#weekStats').innerHTML = [
     ['Total study', fmtMin(totalStudy*60)],
     ['Avg sleep', avgSleep==null ? '–' : avgSleep.toFixed(1)+'h'],
     ['Water goal', `${waterDays}/7 days`],
-    ['Workouts', `${coachDays}/7 days`],
+    ['All tasks done', `${ds.filter(met.tasks).length}/7 days`],
   ].map(([l,v]) => `<div class="card"><div class="muted">${l}</div><div class="big" style="font-size:22px">${v}</div></div>`).join('');
 
   // day picker
@@ -627,7 +606,7 @@ function renderWeek(){
     return `<button data-day="${k}" class="${k===selDay?'on':''}">${DOW[d.getDay()]}<br>${d.getDate()}</button>`; }).join('');
   const sd = peek(selDay);
   $('#dayDetail').innerHTML = !sd ? '<div class="muted">Nothing logged that day.</div>' : `
-    <div class="muted" style="margin-bottom:6px">Study ${fmtMin(sd.study)} · Sleep ${sd.sleep??'–'}h · Water ${sd.water} · ${sd.coach?'Workout ✓':'No workout'}</div>
+    <div class="muted" style="margin-bottom:6px">Study ${fmtMin(sd.study)} · Sleep ${sd.sleep??'–'}h · Water ${sd.water}</div>
     ${sd.top3.filter(Boolean).length ? `<div style="margin:6px 0"><b>Priorities:</b> ${sd.top3.map((p,i)=>p?`${sd.top3done[i]?'✅':'⬜'} ${esc(p)}`:'').filter(Boolean).join(' · ')}</div>` : ''}
     ${sd.tasks.map(t => `<div class="item ${t.done?'done':''}"><div class="check ${t.done?'on':''}">${t.done?'✓':''}</div><div class="txt">${esc(t.text)}</div></div>`).join('') || '<div class="muted">No tasks.</div>'}`;
 
@@ -646,12 +625,12 @@ $('#revWent').addEventListener('input', e => { review().went = e.target.value; s
 $('#revNext').addEventListener('input', e => { review().next = e.target.value; save(); });
 
 // ---------- SETTINGS ----------
-const setMap = { setName:'name', setStudy:'studyGoal', setSleep:'sleepGoal', setWater:'waterGoal', setFocus:'focusMin', setBreak:'breakMin', setCoach:'coachUrl' };
+const setMap = { setName:'name', setStudy:'studyGoal', setSleep:'sleepGoal', setWater:'waterGoal', setFocus:'focusMin', setBreak:'breakMin' };
 function renderSettings(){ for (const [id,k] of Object.entries(setMap)) $('#'+id).value = S.settings[k]; }
 for (const [id,k] of Object.entries(setMap)) {
   $('#'+id).addEventListener('change', e => {
     let v = e.target.value.trim();
-    if (!['name','coachUrl'].includes(k)) { v = parseFloat(v); if (!(v > 0)) { e.target.value = S.settings[k]; return toast('Enter a number above 0'); } }
+    if (!k === 'name') { v = parseFloat(v); if (!(v > 0)) { e.target.value = S.settings[k]; return toast('Enter a number above 0'); } }
     S.settings[k] = v;
     if (k === 'focusMin') T.length = v;
     save(); renderAll(); toast('Saved');
